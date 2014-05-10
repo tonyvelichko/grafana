@@ -29,7 +29,7 @@ define([
     };
 
     this.getAnnotations = function(rangeUnparsed) {
-      if (!annotationPanel.enable) {
+      if (!annotationPanel || !annotationPanel.enable) {
         return $q.when(null);
       }
 

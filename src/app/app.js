@@ -77,6 +77,9 @@ function (angular, $, _, appLevelRequire) {
       .when('/dashboard/:kbnType/:kbnId/:params', {
         templateUrl: 'app/partials/dashboard.html'
       })
+      .when('/panel/:panelId', {
+        templateUrl: 'app/partials/singlePanel.html',
+      })
       .otherwise({
         redirectTo: 'dashboard'
       });
@@ -124,7 +127,7 @@ function (angular, $, _, appLevelRequire) {
     angular
       .element(document)
       .ready(function() {
-        $('body').attr('ng-controller', 'DashCtrl');
+        $('body').attr('ng-controller', 'singlePanelCtrl');
         angular.bootstrap(document, apps_deps)
           .invoke(['$rootScope', function ($rootScope) {
             _.each(pre_boot_modules, function (module) {

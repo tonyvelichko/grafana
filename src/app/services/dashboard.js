@@ -60,6 +60,8 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
     this.last = {};
     this.availablePanels = [];
 
+    console.log('Dashboard service');
+
     $rootScope.$on('$routeChangeSuccess',function(){
       // Clear the current dashboard to prevent reloading
       self.current = {};
@@ -95,6 +97,10 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         }
       // No dashboard in the URL
       } else {
+        if ($routeParams.panelId) {
+          return;
+        }
+
         // Check if browser supports localstorage, and if there's an old dashboard. If there is,
         // inform the user that they should save their dashboard to Elasticsearch and then set that
         // as their default
