@@ -6,7 +6,9 @@ function (angular) {
 
   var module = angular.module('kibana.controllers');
 
-  module.controller('singlePanelCtrl', function($scope, $http, dashboard) {
+  module.controller('SinglePanelCtrl', function($scope, $rootScope, $http, dashboard) {
+
+    $rootScope.singlePanelMode = true;
 
     dashboard.dash_load({
       services: {
@@ -22,7 +24,6 @@ function (angular) {
 
 
     $scope.init = function() {
-      console.log('singlePanelCtrl!');
 
       $scope.row = {
         height: '400px'
@@ -90,6 +91,8 @@ function (angular) {
       "#3F6833","#967302","#2F575E","#99440A","#58140C","#052B51","#511749","#3F2B5B", //6
       "#E0F9D7","#FCEACA","#CFFAFF","#F9E2D2","#FCE2DE","#BADFF4","#F9D9F9","#DEDAF7"  //7
     ];
+
+    $scope.init();
 
   });
 

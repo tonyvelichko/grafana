@@ -127,7 +127,7 @@ function (angular, $, _, appLevelRequire) {
     angular
       .element(document)
       .ready(function() {
-        $('body').attr('ng-controller', 'singlePanelCtrl');
+        $('body').attr('ng-controller', 'DashCtrl');
         angular.bootstrap(document, apps_deps)
           .invoke(['$rootScope', function ($rootScope) {
             _.each(pre_boot_modules, function (module) {

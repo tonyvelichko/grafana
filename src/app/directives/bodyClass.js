@@ -11,6 +11,9 @@ function (angular, app, _) {
     .directive('bodyClass', function() {
       return {
         link: function($scope, elem) {
+          if ($scope.singlePanelMode) {
+            return;
+          }
 
           var lastPulldownVal;
           var lastHideControlsVal;
