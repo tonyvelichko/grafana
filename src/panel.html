@@ -16,20 +16,15 @@
     <script src="vendor/require/require.js"></script>
     <script src="app/components/require.config.js"></script>
     <script>require(['app'], function () {})</script>
-    <style>
-    </style>
-
   </head>
 
-  <body ng-cloak>
+  <body ng-cloak ng-init="init()">
 
-    <!--<link rel="stylesheet" ng-href="css/bootstrap.{{dashboard.current.style||'dark'}}.min.css">-->
     <link rel="stylesheet" ng-href="css/bootstrap.{{dashboard.current.style||'dark'}}.min.css">
     <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
 
     <div ng-view ng-class="{'dashboard-fullscreen': fullscreen}">
-
     </div>
 
   </body>

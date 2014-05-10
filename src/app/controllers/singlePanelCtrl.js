@@ -20,13 +20,15 @@ function (angular) {
       }
     });
 
-    console.log('singlePanelCtrl!');
 
     $scope.init = function() {
+      console.log('singlePanelCtrl!');
 
       $scope.row = {
-        height: '500px'
+        height: '400px'
       };
+
+      $scope.$index = 0;
 
       $scope.panel = {
         "span": 12,
