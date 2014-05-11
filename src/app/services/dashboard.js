@@ -14,7 +14,7 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
   var module = angular.module('kibana.services');
 
   module.service('dashboard', function(
-    $routeParams, $http, $rootScope, $injector, $location, $timeout,
+    $routeParams, $http, $rootScope, $injector, $location, $timeout, $route,
     ejsResource, timer, alertSrv, $q
   ) {
     // A hash of defaults to use when loading a dashboard
@@ -34,15 +34,12 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
       loader: {
         save_gist: false,
         save_elasticsearch: true,
-        save_local: true,
-        save_default: true,
         save_temp: true,
         save_temp_ttl_enable: true,
         save_temp_ttl: '30d',
         load_gist: false,
         load_elasticsearch: true,
         load_elasticsearch_size: 20,
-        load_local: false,
         hide: false
       },
       refresh: false
@@ -60,8 +57,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
     this.last = {};
     this.availablePanels = [];
 
-    console.log('Dashboard service');
-
     $rootScope.$on('$routeChangeSuccess',function(){
       // Clear the current dashboard to prevent reloading
       self.current = {};
@@ -71,8 +66,11 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
     });
 
     var route = function() {
-      // Is there a dashboard type and id in the URL?
-      if(!(_.isUndefined($routeParams.kbnType)) && !(_.isUndefined($routeParams.kbnId))) {
+      /*if ($rootScope.singlePanelMode) {
+        return;
+      }*/
+
+      if($routeParams.kbnType && $routeParams.kbnId) {
         var _type = $routeParams.kbnType;
         var _id = $routeParams.kbnId;
 
@@ -97,27 +95,8 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         }
       // No dashboard in the URL
       } else {
-        if ($routeParams.panelId) {
-          return;
-        }
-
-        // Check if browser supports localstorage, and if there's an old dashboard. If there is,
-        // inform the user that they should save their dashboard to Elasticsearch and then set that
-        // as their default
-        if (Modernizr.localstorage) {
-          if(!(_.isUndefined(window.localStorage['dashboard'])) && window.localStorage['dashboard'] !== '') {
-            $location.path(config.default_route);
-            alertSrv.set('Saving to browser storage has been replaced',' with saving to Elasticsearch.'+
-              ' Click <a href="#/dashboard/local/deprecated">here</a> to load your old dashboard anyway.');
-          } else if(!(_.isUndefined(window.localStorage.grafanaDashboardDefault))) {
-            $location.path(window.localStorage.grafanaDashboardDefault);
-          } else {
-            $location.path(config.default_route);
-          }
-        // No? Ok, grab the default route, its all we have now
-        } else {
-          $location.path(config.default_route);
-        }
+        var browserDefault = window.localStorage && window.localStorage.grafanaDashboardDefault;
+        $location.path(browserDefault || config.default_route);
       }
     };
 
@@ -210,10 +189,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
 
     this.set_default = function(route) {
       if (Modernizr.localstorage) {
-        // Purge any old dashboards
-        if(!_.isUndefined(window.localStorage['dashboard'])) {
-          delete window.localStorage['dashboard'];
-        }
         window.localStorage.grafanaDashboardDefault = route;
         return true;
       } else {
@@ -223,11 +198,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
 
     this.purge_default = function() {
       if (Modernizr.localstorage) {
-        // Purge any old dashboards
-        if(!_.isUndefined(window.localStorage['dashboard'])) {
-
-          delete window.localStorage['dashboard'];
-        }
         delete window.localStorage.grafanaDashboardDefault;
         return true;
       } else {
@@ -257,31 +227,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         _r = false;
       }
       return _r;
-    };
-
-    this.local_load = function() {
-      var dashboard = JSON.parse(window.localStorage['dashboard']);
-      dashboard.rows.unshift({
-        height: "30",
-        title: "Deprecation Notice",
-        panels: [
-          {
-            title: 'WARNING: Legacy dashboard',
-            type: 'text',
-            span: 12,
-            mode: 'html',
-            content: 'This dashboard has been loaded from the browsers local cache. If you use '+
-            'another brower or computer you will not be able to access it! '+
-            '\n\n  <h4>Good news!</h4> Kibana'+
-            ' now stores saved dashboards in Elasticsearch. Click the <i class="icon-save"></i> '+
-            'button in the top left to save this dashboard. Then select "Set as Home" from'+
-            ' the "advanced" sub menu to automatically use the stored dashboard as your Kibana '+
-            'landing page afterwards'+
-            '<br><br><strong>Tip:</strong> You may with to remove this row before saving!'
-          }
-        ]
-      });
-      self.dash_load(dashboard);
     };
 
     this.file_load = function(file) {

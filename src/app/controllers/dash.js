@@ -33,6 +33,12 @@ function (angular, $, config, _) {
     $scope, $rootScope, ejsResource, dashboard,
     alertSrv, panelMove, keyboardManager, grafanaVersion) {
 
+    // need to this check early because the
+    // angular route event comes after first digest
+    if (window.location.hash && window.location.hash.indexOf('#/panel/') === 0) {
+      $rootScope.singlePanelMode = true;
+    }
+
     $scope.requiredElasticSearchVersion = ">=0.90.3";
 
     $scope.editor = {
@@ -47,7 +53,6 @@ function (angular, $, config, _) {
     $scope.panelMoveStop = panelMove.onStop;
     $scope.panelMoveOver = panelMove.onOver;
     $scope.panelMoveOut = panelMove.onOut;
-
 
     $scope.init = function() {
       $scope.config = config;
@@ -67,6 +72,7 @@ function (angular, $, config, _) {
     };
 
     $scope.bindKeyboardShortcuts = function() {
+
       $rootScope.$on('panel-fullscreen-enter', function() {
         $rootScope.fullscreen = true;
       });
