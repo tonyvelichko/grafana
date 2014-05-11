@@ -77,7 +77,7 @@ function (angular, $, _, appLevelRequire) {
       .when('/dashboard/:kbnType/:kbnId/:params', {
         templateUrl: 'app/partials/dashboard.html'
       })
-      .when('/panel/:kbnType/:kbnId', {
+      .when('/panel/:kbnType/:kbnId/:title', {
         templateUrl: 'app/partials/singlePanel.html',
         loadDashboard: false,
       })
