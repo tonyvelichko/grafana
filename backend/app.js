@@ -7,7 +7,7 @@ var fs = require('fs');
 app.get('/render_image', function(req, res){
 
 	var command = './node_modules/.bin/phantomjs render-panel.js ';
-	var params = 'url=http://localhost:5601/panel.html#/panel/123 png=test.png';
+	var params = 'url=http://localhost:5601/#/' + req.params.url + 'png=test.png';
 
 	child = exec(command + params,
 	  function (error, stdout, stderr) {
