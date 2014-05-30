@@ -5,7 +5,10 @@ dist
 # locally required config files
 web.config
 config.js
+<<<<<<< HEAD
 
 # Editor junk
+=======
+>>>>>>> f9ede4bae9283917712903d8ed4531473f48f917
 *.sublime-workspace
 *.swp

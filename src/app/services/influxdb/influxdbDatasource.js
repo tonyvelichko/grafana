@@ -17,7 +17,6 @@ function (angular, _, kbn) {
       this.username = datasource.username;
       this.password = datasource.password;
       this.name = datasource.name;
-
       this.templateSettings = {
         interpolate : /\[\[([\s\S]+?)\]\]/g,
       };
@@ -32,6 +31,7 @@ function (angular, _, kbn) {
         }
 
         var timeFilter = getTimeFilter(options);
+        var additionalGroups = [];
 
         if (target.rawQuery) {
           query = target.query;
@@ -41,6 +41,14 @@ function (angular, _, kbn) {
           var whereIndex = lowerCaseQueryElements.indexOf("where");
           var groupByIndex = lowerCaseQueryElements.indexOf("group");
           var orderIndex = lowerCaseQueryElements.indexOf("order");
+
+          additionalGroups = lowerCaseQueryElements.slice(groupByIndex + 1,
+            orderIndex >= 0 ? orderIndex : lowerCaseQueryElements.length).filter(function(w) {
+            return ! /time\(/.test(w);
+          });
+          additionalGroups = _.map(additionalGroups, function(w) {
+            return w.replace(",","");
+          });
 
           if (whereIndex !== -1) {
             queryElements.splice(whereIndex+1, 0, timeFilter, "and");
@@ -61,9 +69,9 @@ function (angular, _, kbn) {
           query = queryElements.join(" ");
         }
         else {
-          var template = "select [[func]](\"[[column]]\") as \"[[column]]_[[func]]\" from \"[[series]]\" " +
+          template = "select [[group]][[group_comma]] [[func]](\"[[column]]\") as \"[[column]]_[[func]]\" from [[series]] " +
                          "where  [[timeFilter]] [[condition_add]] [[condition_key]] [[condition_op]] [[condition_value]] " +
-                         "group by time([[interval]]) order asc";
+                         "group by time([[interval]])[[group_comma]] [[group]] order asc";
 
           var templateData = {
             series: target.series,
@@ -71,17 +79,22 @@ function (angular, _, kbn) {
             func: target.function,
             timeFilter: timeFilter,
             interval: target.interval || options.interval,
-            condition_add: target.condiction_filter ? target.condition_add : '',
-            condition_key: target.condiction_filter ? target.condition_key : '',
-            condition_op: target.condiction_filter ? target.condition_op : '',
-            condition_value: target.condiction_filter ? target.condition_value: ''
+            condition_add: target.condition_filter ? target.condition_add : '',
+            condition_key: target.condition_filter ? target.condition_key : '',
+            condition_op: target.condition_filter ? target.condition_op : '',
+            condition_value: target.condition_filter ? target.condition_value : '',
+            group_comma: target.groupby_field_add && target.groupby_field ? ',' : '',
+            group: target.groupby_field_add ? target.groupby_field : '',
           };
 
+          if (target.groupby_field_add) {
+            additionalGroups.push(target.groupby_field);
+          }
           query = _.template(template, templateData, this.templateSettings);
           target.query = query;
         }
 
-        return this.doInfluxRequest(query, target.alias).then(handleInfluxQueryResponse);
+        return this.doInfluxRequest(query, target.alias).then(handleInfluxQueryResponse(additionalGroups));
 
       }, this);
 
@@ -150,29 +163,47 @@ function (angular, _, kbn) {
       return deferred.promise;
     };
 
-    function handleInfluxQueryResponse(data) {
-      var output = [];
+    function handleInfluxQueryResponse(additionalGroup) {
+      return function(data) {
+        var output = [];
 
-      _.each(data, function(series) {
-        var timeCol = series.columns.indexOf('time');
+        _.each(data, function(series) {
+          var timeCol = series.columns.indexOf('time');
+          var groupCols = _.map(additionalGroup, function(col) {
+            return series.columns.indexOf(col);
+          });
+          var groupByColumn = _.find(groupCols, function(col) { return col > -1; });
 
-        _.each(series.columns, function(column, index) {
-          if (column === "time" || column === "sequence_number") {
-            return;
-          }
+          _.each(series.columns, function(column, index) {
+            if (column === "time" || column === "sequence_number" || _.contains(additionalGroup, column)) {
+              return;
+            }
 
-          var target = data.alias || series.name + "." + column;
-          var datapoints = [];
+            var target = data.alias || series.name + "." + column;
+            var datapoints = _.groupBy(series.points, function (point) {
+              if (groupByColumn === undefined) {
+                return null;
+              } else {
+                return point[groupByColumn];
+              }
+            });
+            datapoints = _.map(_.pairs(datapoints), function(values) {
+              return [values[0], _.map(values[1], function (point) { return [point[index], point[timeCol]]; }) ];
+            });
 
-          for(var i = 0; i < series.points.length; i++) {
-            datapoints[i] = [series.points[i][index], series.points[i][timeCol]];
-          }
-
-          output.push({ target:target, datapoints:datapoints });
+            _.each(datapoints, function(values) {
+              // this gets stringified on its way out of _.pair... sigh
+              if (values[0] == "null") {
+                output.push({ target: target, datapoints: values[1]});
+              } else {
+                output.push({ target: values[0] + "-" + target, datapoints: values[1] });
+              }
+            });
+          });
         });
-      });
 
-      return output;
+        return output;
+      };
     }
 
     function getTimeFilter(options) {
