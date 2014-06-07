@@ -1,4 +1,41 @@
 # vNext
+
+#### New features or improvements
+- New Y-axis formater for metric values that represent seconds (Issue #427) - thx @jippi
+- Allow special characters in serie names (influxdb datasource), PR #390 - thx  @majst01
+- Refactoring of filterSrv (Issue #428), thx @Tetha
+- New config for playlist feature. Set playlist_timespan to set default playlist interval (Issue #445) - thx @rmca
+- New graphite function definition added isNonNull (PR #461), - thx @tmonk42
+- New InfluxDB function difference add to function dropdown (PR #455)
+- Added parameter to keepLastValue graphite function definition (default 100), Closes #459
+- improved asset (css/js) build pipeline, added revision to css and js. Will remove issues related
+  to the browser cache when upgrading grafana and improve load performance (Fixes #418)
+- Partial support for url encoded metrics when using Graphite datasource (PR #327) - thx @axe-felix
+- Improvement to InfluxDB query editor and function/value column selection (Issue #473)
+- Initial support for filtering (templated queries) for InfluxDB (PR #375) - thx @mavimo
+- Row editing and adding new panel is now a lot quicker and easier with the new row menu (Issue #475)
+
+#### Changes
+- Graphite panel is now renamed graph (Existing dashboards will still work)
+- Add panel icon and Row edit button is replaced by the Row edit menu (Issue #475)
+- New graphs now have a default empty query
+- Add Row button now creates a row with default height of 250px (no longer opens dashboard settings modal)
+- Clean up of config.sample.js, graphiteUrl removed (still works, but depricated, removed in future)
+  Use datasources config instead. panel_names removed from config.js. Use plugins.panels to add custom panels
+
+#### Fixes
+- Filter option loading when having muliple nested filters now works better.
+  Options are now reloaded correctly and there are no multiple renders/refresh inbetween (#447),
+  After an option is changed and a nested template param is also reloaded, if the current value
+  exists after the options are reloaded the current selected value is kept (Closes #447, Closes #412)
+- Legend Current value did not display when value was zero, Fixes #460
+- Fix to series toggling bug that caused annotations to be hidden when toggling (hiding) series. Fixes #328
+- Fix for graphite function selection menu that some times draws outside screen. It now displays upward (Fixes #293)
+- Fix for exclusive series toggling (hold down CTRL, SHIFT or META key) and left click a series for exclusive toggling
+  CTRL does not work on MAC OSX but SHIFT or META should (depending on browser) (Closes #350, Fixes #472)
+
+# 1.5.4 (2014-05-13)
+### New features and improvements
 - InfluxDB enhancement: support for multiple hosts (with retries) and raw queries (Issue #318, thx @toddboom)
 - Added rounding for graphites from and to time range filters
   for very short absolute ranges (Issue #320)
@@ -6,11 +43,14 @@
 - Improvement to influxdb query editor, can now add where clause and alias (Issue #331, thanks @mavimo)
 - New config setting for graphite datasource to control if json render request is POST or GET (Issue #345)
 - Unsaved changes warning feature (Issue #324)
-- Fixes to filters and "All" option. It now never uses "*" as value, but all options in a {node1, node2, node3} expression (Issue #228, #359)
-- Fix for InfluxDB query generation with columns containing dots or dashes (Issue #369, #348) - Thanks to @jbripley
 - Improvement to series toggling, CTRL+MouseClick on series name will now hide all others (Issue #350)
+
+### Changes
 - Graph default setting for Y-Min changed from zero to auto scalling (will not effect existing dashboards). (Issue #386) - thx @kamaradclimber
 
+### Fixes
+- Fixes to filters and "All" option. It now never uses "*" as value, but all options in a {node1, node2, node3} expression (Issue #228, #359)
+- Fix for InfluxDB query generation with columns containing dots or dashes (Issue #369, #348) - Thanks to @jbripley
 
 
 # 1.5.3 (2014-04-17)

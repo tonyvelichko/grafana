@@ -124,6 +124,7 @@ define([
       i === 45 ||           // -
       i === 42 ||           // *
       i === 58 ||           // :
+      i === 37 ||           // %
       i >= 97 && i <= 122;  // a-z
   }
 
@@ -156,7 +157,7 @@ define([
     tokenize: function() {
       var list = [];
       var token;
-      while(token = this.next()) {
+      while (token = this.next()) {
         list.push(token);
       }
       return list;
@@ -720,5 +721,3 @@ define([
   return Lexer;
 
 });
-
-

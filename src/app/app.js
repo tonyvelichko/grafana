@@ -102,8 +102,9 @@ function (angular, $, _, appLevelRequire) {
     'pasvaz.bindonce'
   ];
 
-  _.each('controllers directives factories services filters'.split(' '),
-  function (type) {
+  var module_types = ['controllers', 'directives', 'factories', 'services', 'services.dashboard', 'filters'];
+
+  _.each(module_types, function (type) {
     var module_name = 'kibana.'+type;
     // create the module
     app.useModule(angular.module(module_name, []));
@@ -121,7 +122,8 @@ function (angular, $, _, appLevelRequire) {
   require([
     'controllers/all',
     'directives/all',
-    'filters/all'
+    'filters/all',
+    'components/partials',
   ], function () {
 
     // bootstrap the app

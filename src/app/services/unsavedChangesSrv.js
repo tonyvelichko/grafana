@@ -3,7 +3,7 @@ define([
   'underscore',
   'config',
 ],
-function (angular, _, config) {
+function(angular, _, config) {
   'use strict';
 
   if (!config.unsaved_changes_warning) {
@@ -16,7 +16,19 @@ function (angular, _, config) {
     var self = this;
     var modalScope = $rootScope.$new();
 
-    window.onbeforeunload = function () {
+    $rootScope.$on("dashboard-loaded", function(event, newDashboard) {
+      self.original = angular.copy(newDashboard);
+    });
+
+    $rootScope.$on("dashboard-saved", function(event, savedDashboard) {
+      self.original = angular.copy(savedDashboard);
+    });
+
+    $rootScope.$on("$routeChangeSuccess", function() {
+      self.original = null;
+    });
+
+    window.onbeforeunload = function() {
       if (self.has_unsaved_changes()) {
         return "There are unsaved changes to this dashboard";
       }
@@ -32,7 +44,7 @@ function (angular, _, config) {
       });
     };
 
-    this.open_modal = function () {
+    this.open_modal = function() {
       var confirmModal = $modal({
           template: './app/partials/unsaved-changes.html',
           persist: true,
@@ -46,16 +58,17 @@ function (angular, _, config) {
       });
     };
 
-    this.has_unsaved_changes = function () {
-      if (!dashboard.original) {
+    this.has_unsaved_changes = function() {
+      if (!self.original) {
         return false;
       }
 
       var current = angular.copy(dashboard.current);
-      var original = dashboard.original;
+      var original = self.original;
 
       // ignore timespan changes
       current.services.filter.time = original.services.filter.time = {};
+
       current.refresh = original.refresh;
 
       var currentTimepicker = _.findWhere(current.nav, { type: 'timepicker' });
@@ -75,14 +88,14 @@ function (angular, _, config) {
       return false;
     };
 
-    this.goto_next = function () {
+    this.goto_next = function() {
       var baseLen = $location.absUrl().length - $location.url().length;
       var nextUrl = self.next.substring(baseLen);
       $location.url(nextUrl);
     };
 
     modalScope.ignore = function() {
-      dashboard.original = null;
+      self.original = null;
       self.goto_next();
     };
 

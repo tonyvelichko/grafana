@@ -52,18 +52,24 @@ function (angular, _, config) {
     $scope.loadAll = function() {
       $scope.infoText = "Fetching all metrics from graphite...";
 
-      return $http.get(config.graphiteUrl + "/metrics/index.json")
-        .then(saveMetricsArray)
-        .then(function () {
+      getFromEachGraphite('/metrics/index.json', saveMetricsArray)
+        .then(function() {
           $scope.infoText = "Indexing complete!";
-        })
-        .then(null, function(err) {
+        }).then(null, function(err) {
           $scope.errorText = err;
         });
     };
 
-    function saveMetricsArray(data, currentIndex)
-    {
+    function getFromEachGraphite(request, data_callback, error_callback) {
+      return $q.all(_.map(config.datasources, function(datasource) {
+        if (datasource.type = 'graphite') {
+          return $http.get(datasource.url + request)
+            .then(data_callback, error_callback);
+        }
+      }));
+    }
+
+    function saveMetricsArray(data, currentIndex) {
       if (!data && !data.data && data.data.length === 0) {
         return $q.reject('No metrics from graphite');
       }
@@ -112,7 +118,7 @@ function (angular, _, config) {
                 type : "nGram",
                 min_gram : "3",
                 max_gram : "8",
-                token_chars: [ "letter", "digit", "punctuation", "symbol"]
+                token_chars: ["letter", "digit", "punctuation", "symbol"]
               }
             }
           }
@@ -172,7 +178,7 @@ function (angular, _, config) {
 
     function loadMetricsRecursive(metricPath)
     {
-      return $http.get(config.graphiteUrl + '/metrics/find/?query=' + metricPath).then(receiveMetric);
+      return getFromEachGraphite('/metrics/find/?query=' + metricPath, receiveMetric);
     }
 
   });

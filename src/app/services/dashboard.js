@@ -28,8 +28,8 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
       failover: false,
       panel_hints: true,
       rows: [],
-      pulldowns: [ { type: 'templating' },  { type: 'annotations' } ],
-      nav: [ { type: 'timepicker' } ],
+      pulldowns: [{ type: 'templating' },  { type: 'annotations' }],
+      nav: [{ type: 'timepicker' }],
       services: {},
       loader: {
         save_gist: false,
@@ -51,16 +51,14 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
 
     // Store a reference to this
     var self = this;
-    var filterSrv;
 
     this.current = _.clone(_dash);
     this.last = {};
     this.availablePanels = [];
 
-    $rootScope.$on('$routeChangeSuccess',function(){
+    $rootScope.$on('$routeChangeSuccess',function() {
       // Clear the current dashboard to prevent reloading
       self.current = {};
-      self.original = null;
       self.indices = [];
       route();
     });
@@ -125,6 +123,14 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         });
       }
 
+      _.each(dashboard.rows, function(row) {
+        _.each(row.panels, function(panel) {
+          if (panel.type === 'graphite') {
+            panel.type = 'graph';
+          }
+        });
+      });
+
       return dashboard;
     };
 
@@ -142,26 +148,13 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
 
       // Set the current dashboard
       self.current = angular.copy(dashboard);
-
-      filterSrv = $injector.get('filterSrv');
-      filterSrv.init();
-
       if(dashboard.refresh) {
         self.set_interval(dashboard.refresh);
       }
 
-      // Set the available panels for the "Add Panel" drop down
-      self.availablePanels = _.difference(config.panel_names,
-        _.pluck(_.union(self.current.nav,self.current.pulldowns),'type'));
+      self.availablePanels = config.panels;
 
-      // Take out any that we're not allowed to add from the gui.
-      self.availablePanels = _.difference(self.availablePanels,config.hidden_panels);
-
-      $rootScope.$emit('dashboard-loaded');
-
-      $timeout(function() {
-        self.original = angular.copy(self.current);
-      }, 1000);
+      $rootScope.$emit('dashboard-loaded', self.current);
 
       return true;
     };
@@ -341,7 +334,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
           if(type === 'dashboard') {
             $location.path('/dashboard/elasticsearch/'+title);
           }
-          self.original = angular.copy(self.current);
           return result;
         },
         // Failure
@@ -418,8 +410,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         timer.cancel(self.refresh_timer);
       }
     };
-
-
   });
 
 });

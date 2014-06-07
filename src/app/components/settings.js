@@ -20,11 +20,13 @@ function (_, crypto) {
           default: true
         }
       },
-      panel_names                   : [],
+      panels                        : ['graph', 'text'],
+      plugins                       : {},
       default_route                 : '/dashboard/file/default.json',
       grafana_index                 : 'grafana-dash',
       elasticsearch_all_disabled    : false,
       timezoneOffset                : null,
+      playlist_timespan             : "1m",
       unsaved_changes_warning       : true
     };
 
@@ -74,6 +76,10 @@ function (_, crypto) {
     var elasticParsed = parseBasicAuth({ url: settings.elasticsearch });
     settings.elasticsearchBasicAuth = elasticParsed.basicAuth;
     settings.elasticsearch = elasticParsed.url;
+
+    if (settings.plugins.panels) {
+      settings.panels = _.union(settings.panels, settings.plugins.panels);
+    }
 
     return settings;
   };
