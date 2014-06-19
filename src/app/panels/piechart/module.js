@@ -95,7 +95,7 @@ define([
                             return;
                         }
 
-                        var formatter = kbn.getFormatFunction('short', 1);
+                        var formatter = kbn.getFormatFunction('short', 2);
 
                         var options = {
                             series: {
@@ -113,6 +113,9 @@ define([
                             },
                             legend: {
                                 show: false
+                            },
+                            grid: {
+                                hoverable: true
                             }
                         };
 
@@ -135,6 +138,27 @@ define([
 
                                 scope.$apply(function() {
                                     scope.panel.total = formatter(sumOfData);
+                                });
+
+                                var $tooltip = $('<div>');
+
+                                element.bind("plothover", function (event, pos, item) {
+                                    var group;
+
+                                    if (item) {
+                                        if (item.series.label) {
+                                            group = '<small style="font-size:0.9em;">' +
+                                                '<i class="icon-circle" style="color:'+item.series.color+';"></i>' + ' ' +
+                                                (item.series.label) +
+                                                '</small> - ' + Math.round(item.series.percent) + '% &nbsp;' + formatter(item.series.data[0][1]);
+                                        }
+
+                                        $tooltip
+                                            .html(group)
+                                            .place_tt(pos.pageX, pos.pageY);
+                                    } else {
+                                        $tooltip.detach();
+                                    }
                                 });
                             }
                         });
